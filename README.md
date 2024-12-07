@@ -8,6 +8,8 @@ Please feel free to give us feedback and get in touch at by contacting info-at-v
 
 # 1: The "RMAC"
 
+Code can be found in this repository under https://github.com/visualsilicon/tradingview/blob/main/src/indicators/rmac/RMAC.pinescript.txt
+
 This indicator was inspired by a video published on the YouTube channel https://www.youtube.com/@chadtrades
 
 The video explains a manual setup to make up this indicator using RSI and MACD.
