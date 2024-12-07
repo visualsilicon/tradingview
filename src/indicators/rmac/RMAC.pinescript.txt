@@ -1,0 +1,67 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © 2024-2025, visualSilicon.com
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// NOTE: This indicator was inspired by a video published on the YouTube channel https://www.youtube.com/@chadtrades
+//       The video explains a manual setup to make up this indicator using RSI and MACD.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//@version=6
+indicator(title="Relative Moving Average Convergence Divergence (RMAC) [visualSilicon]", shorttitle="RMACD [visualSilicon]", timeframe="", timeframe_gaps=true)
+
+// Getting inputs
+signal_average_length = input(title = "Signal Average Length (e.g. 45 minutes)", defval = 45)
+fast_length = input(title = "Fast Length", defval = 2)
+slow_length = input(title = "Slow Length", defval = 20)
+src = input(title = "Source", defval = close)
+signal_length = input.int(title = "Signal Smoothing",  minval = 1, maxval = 50, defval = 1, display = display.data_window)
+sma_source = input.string(title = "Oscillator MA Type",  defval = "EMA", options = ["SMA", "EMA"], display = display.data_window)
+sma_signal = input.string(title = "Signal Line MA Type", defval = "EMA", options = ["SMA", "EMA"], display = display.data_window)
+
+// Calculating
+fast_ma = sma_source == "SMA" ? ta.sma(src, fast_length) : ta.ema(src, fast_length)
+slow_ma = sma_source == "SMA" ? ta.sma(src, slow_length) : ta.ema(src, slow_length)
+macd = fast_ma - slow_ma
+signal = sma_signal == "SMA" ? ta.sma(macd, signal_length) : ta.ema(macd, signal_length)
+hist = macd - signal
+
+// For RMAC
+float signal_high = ta.highest(signal, signal_average_length)
+float signal_low = ta.lowest(signal, signal_average_length)
+float signal_average = (signal_high+signal_low)/2.0
+
+float rmac_long_threshold = math.max(0, signal_average)
+float rmac_short_threshold = math.min(0, signal_average)
+
+// alertcondition(hist[1] >= 0 and hist < 0, title = 'Rising to falling', message = 'The MACD histogram switched from a rising to falling state')
+// alertcondition(hist[1] <= 0 and hist > 0, title = 'Falling to rising', message = 'The MACD histogram switched from a falling to rising state')
+
+hline(0, "Zero HLine", color = #FFFF0077, display = display.none)
+plot(signal_average, title = "Signal Average", color = #FFFF0077, display = display.none)
+
+long_plot = plot(rmac_long_threshold, title = "RMAC Long Line", color = #22FF22AA)
+short_plot = plot(rmac_short_threshold, title = "RMAC Short Line", color = #FF2222AA)
+
+plot(hist, title = "Histogram", style = plot.style_columns, color = (hist >= 0 ? (hist[1] < hist ? #26A69A : #B2DFDB) : (hist[1] < hist ? #FFCDD2 : #FF5252)), display = display.none)
+macd_plot = plot(macd,   title = "MACD",   color = #FFFF0077)
+signal_plot = plot(signal, title = "Signal", color = #AA00AA77)
+
+// // Use MACD itself
+// go_long = (macd[1]>rmac_long_threshold) and (macd>rmac_long_threshold)
+// go_short = (macd[1]<rmac_short_threshold) and (macd<rmac_short_threshold)
+
+// fill(macd_plot, long_plot, go_long ? #4caf4f22 : na, "Long Opportunity")
+// fill(short_plot, macd_plot, go_short ? #ff525222 : na, "Short Opportunity")
+
+// Use smoothed MACD (signal)
+go_long = (signal[1]>rmac_long_threshold) and (signal>rmac_long_threshold)
+go_short = (signal[1]<rmac_short_threshold) and (signal<rmac_short_threshold)
+
+color long_color = #4caf4f44
+color short_color = #ff525244
+fill(signal_plot, long_plot, go_long ? long_color : na, "Long Opportunity")
+fill(short_plot, signal_plot, go_short ? short_color : na, "Short Opportunity")
+
+// Paint the bars with the same fill colors
+barcolor(go_long ? color.blue : go_short ? color.orange : na, display = display.none)
+
