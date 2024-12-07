@@ -14,6 +14,8 @@ This indicator was inspired by a video published on the YouTube channel https://
 
 The video explains a manual setup to make up this indicator using RSI and MACD.
 
+Find the video here: https://www.youtube.com/watch?v=BMiy50BQ0mA
+
 Each of the two lines in the setup from the video move above or below the other line depending on the bars within your view/window.
 This is not stable and can show different conflicting results.
 
